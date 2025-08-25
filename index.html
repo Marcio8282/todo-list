@@ -3,153 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Minha To-Do List</title>
-  <style>
-    :root{
-      --bg:#0e1116;--panel:#151a23;--text:#e6e6e6;--muted:#95a1b2;
-      --brand:#0ea5e9;--accent:#22c55e;--border:#2f3b52;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    a{color:inherit;text-decoration:none}
-    .wrap{max-width:680px;margin:48px auto;padding:24px}
-    .card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:24px;backdrop-filter: blur(6px)}
-    h1{margin:0 0 16px;font-size:40px;line-height:1.1}
-    .row{display:flex;gap:12px;align-items:center}
-    #task-input{flex:1;min-width:0;background:#0b0f15;border:1px solid var(--border);border-radius:12px;padding:14px;color:var(--text)}
-    #task-input::placeholder{color:var(--muted)}
-    .btn{border:1px solid var(--border);background:#0b0f15;color:var(--text);padding:12px 16px;border-radius:12px;cursor:pointer}
-    .btn-primary{background:var(--brand);border-color:transparent}
-    .btn-ghost{background:transparent}
-    ul{list-style:none;margin:16px 0 0;padding:0}
-    li{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:rgba(255,255,255,0.02)}
-    li.completed .text{color:var(--muted);text-decoration:line-through}
-    .text{flex:1;min-width:0;word-break:break-word}
-    .icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--border);cursor:pointer}
-    .icon.delete{color:#f87171;border-color:#9b1c1c}
-    .footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:#0b0f15;color:var(--text);cursor:pointer}
-    .chip.active{background:var(--accent);color:#0b0f15;border-color:var(--accent)}
-    #count{color:var(--muted)}
-    @media (max-width:480px){
-      .row{flex-direction:column}
-      .btn{width:100%}
-      h1{font-size:30px}
-    }
-  </style>
+  <title>To-Do Mini Teste</title>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <h1>Minha To-Do List</h1>
+  <h1>Minha To-Do List (teste)</h1>
 
-      <div class="row">
-        <input id="task-input" type="text" placeholder="Nova tarefa" autocomplete="off" />
-        <button id="add-btn" class="btn btn-primary">Adicionar</button>
-      </div>
+  <div class="row">
+    <input id="task-input" type="text" placeholder="Nova tarefa" />
+    <button id="add-btn">Adicionar</button>
+  </div>
 
-      <ul id="task-list"></ul>
+  <ul id="task-list"></ul>
 
-      <div class="footer">
-        <div id="count">0 tarefa(s)</div>
-        <div class="chips">
-          <button class="chip active" data-filter="all">Todas</button>
-          <button class="chip" data-filter="open">Abertas</button>
-          <button class="chip" data-filter="done">Concluídas</button>
-        </div>
-        <button id="clear-done" class="btn btn-ghost">Limpar concluídas</button>
-      </div>
-    </section>
-  </main>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("task-input");
-  const addBtn = document.getElementById("add-btn");
-  const listEl = document.getElementById("task-list");
-  const countEl = document.getElementById("task-count");
-  const clearBtn = document.getElementById("clear-done");
-  const filterBtns = document.querySelectorAll("[data-filter]");
+  <div id="task-count">0 tarefa(s)</div>
 
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  let currentFilter = "all";
+  <div class="chips">
+    <button class="chip active" data-filter="all">Todas</button>
+    <button class="chip" data-filter="open">Abertas</button>
+    <button class="chip" data-filter="done">Concluídas</button>
+  </div>
 
-  function save() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }
+  <button id="clear-done">Limpar concluídas</button>
 
-  function render() {
-    listEl.innerHTML = "";
-    let filtered = tasks.filter(t => {
-      if (currentFilter === "open") return !t.done;
-      if (currentFilter === "done") return t.done;
-      return true;
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("BOOT ✅");                       // Deve aparecer no Console
+      const addBtn = document.getElementById("add-btn");
+      addBtn.addEventListener("click", () => {
+        alert("Cliquei no botão Adicionar!");      // Deve aparecer ao clicar
+      });
     });
-
-    filtered.forEach(task => {
-      const li = document.createElement("li");
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = task.done;
-      checkbox.addEventListener("change", () => toggleTask(task.id));
-
-      const span = document.createElement("span");
-      span.textContent = task.text;
-      if (task.done) span.style.textDecoration = "line-through";
-
-      const del = document.createElement("button");
-      del.textContent = "✖";
-      del.addEventListener("click", () => removeTask(task.id));
-
-      li.appendChild(checkbox);
-      li.appendChild(span);
-      li.appendChild(del);
-      listEl.appendChild(li);
-    });
-
-    const openCount = tasks.filter(t => !t.done).length;
-    countEl.textContent = ${openCount} tarefa(s);
-    save();
-  }
-
-  function addTask() {
-    const text = input.value.trim();
-    if (!text) return;
-    tasks.push({ id: Date.now(), text, done: false });
-    input.value = "";
-    render();
-  }
-
-  function toggleTask(id) {
-    tasks = tasks.map(t => (t.id === id ? { ...t, done: !t.done } : t));
-    render();
-  }
-
-  function removeTask(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    render();
-  }
-
-  function clearDone() {
-    tasks = tasks.filter(t => !t.done);
-    render();
-  }
-
-  addBtn.addEventListener("click", addTask);
-  clearBtn.addEventListener("click", clearDone);
-  filterBtns.forEach(btn =>
-    btn.addEventListener("click", () => {
-      currentFilter = btn.dataset.filter;
-      filterBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      render();
-    })
-  );
-
-  render();
-});
-</script>
-
+  </script>
 </body>
 </html>
