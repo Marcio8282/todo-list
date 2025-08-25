@@ -147,9 +147,8 @@
     <section class="card">
       <h1><span class="dot"></span> Minha To‑Do List</h1>
 
-      <div class="row">
-        <input id="task-input" type="text" placeholder="Nova tarefa…" autocomplete="off" />
-        <button id="add-btn" class="btn-primary">Adicionar</button>
+    <input id="taskInput" type="text" placeholder="Nova tarefa" autocomplete="off" onkeydown="if(event.key==='Enter') addTask()" />
+<button id="addBtn" class="btn-primary" type="button" onclick="addTask()">Adicionar</button>
       </div>
 
       <ul id="task-list"></ul>
@@ -157,13 +156,13 @@
       <div class="footer">
         <div id="count">0 tarefa(s)</div>
         <div class="filter">
-          <button class="chip active" data-filter="all">Todas</button>
-          <button class="chip" data-filter="open">Abertas</button>
-          <button class="chip" data-filter="done">Concluídas</button>
-        </div>
-        <button id="clear-done" class="btn-ghost">Limpar concluídas</button>
-      </div>
-    </section>
+      <div class="filter">
+  <button class="chip active" data-filter="all" onclick="setFilter('all')">Todas</button>
+  <button class="chip" data-filter="open" onclick="setFilter('open')">Abertas</button>
+  <button class="chip" data-filter="done" onclick="setFilter('done')">Concluídas</button>
+</div>
+
+<button id="clear-done" class="btn-ghost" onclick="clearCompleted()">Limpar concluídas</button>
   </main>
 
   <script>
@@ -221,7 +220,23 @@
         li.appendChild(actions);
         listEl.appendChild(li);
       });
+}   // <-- aqui fecha a função render() (linha 222)
 
+// Função para trocar o filtro ativo
+function setFilter(filter) {
+  currentFilter = filter;
+  render();
+
+  // remove o "active" de todos os botões
+  document.querySelectorAll(".filter .chip").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  // adiciona o "active" no botão clicado
+  const activeBtn = document.querySelector(.filter .chip[data-filter="${filter}"]);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
       const openCount = tasks.filter(t => !t.done).length;
       countEl.textContent = ${openCount} tarefa(s);
       save(tasks);
