@@ -1,117 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>To-Do Mini Teste</title>
+  <title>Minha To-Do List</title>
+  <style>
+    :root{--bg:#0e1116;--panel:#151a23;--text:#e6e6e6;--muted:#95a1b2;--brand:#0ea5e9;--border:#223;--accent:#22c55e}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:640px;margin:48px auto;padding:24px}
+    .card{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h1{margin:0 0 16px;font-size:28px;display:flex;align-items:center;gap:8px}
+    h1::before{content:"";width:10px;height:10px;border-radius:999px;background:var(--accent)}
+    .row{display:flex;gap:8px}
+    .task-input{flex:1;background:#0b1220;border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:12px;outline:none}
+    .btn{border:none;border-radius:12px;padding:12px 16px;font-weight:600}
+    .btn-primary{background:#0ea5e9;color:#fff}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    ul{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+    li{display:flex;align-items:center;gap:10px;background:#0b1220;border:1px solid var(--border);border-radius:12px;padding:12px}
+    li span{flex:1}
+    li button{background:transparent;border:1px solid var(--border);color:#ffb4b4;padding:6px 8px;border-radius:8px;cursor:pointer}
+    .footer{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer}
+    .chip.active{border-color:var(--accent);color:#fff}
+    @media (max-width:480px){.row{flex-direction:column} .btn{width:100%}}
+  </style>
 </head>
 <body>
-  <h1>Minha To-Do List (teste)</h1>
+  <main class="container">
+    <div class="card">
+      <h1>Minha To-Do List</h1>
 
-  <div class="row">
-  <input id="task-input" class="task-input" type="text" placeholder="Nova tarefa" autocomplete="off" />
-<button id="add-btn" class="btn btn-primary">Adicionar</button>
+      <div class="row">
+        <input id="task-input" class="task-input" type="text" placeholder="Nova tarefa" autocomplete="off" />
+        <button id="add-btn" class="btn btn-primary">Adicionar</button>
+      </div>
 
-<ul id="task-list"></ul>
+      <ul id="task-list"></ul>
 
-<div class="footer">
-  <div id="count">0 tarefa(s)</div>
-  <div class="chips">
-    <button class="chip active" data-filter="all">Todas</button>
-    <button class="chip" data-filter="open">Abertas</button>
-    <button class="chip" data-filter="done">Concluídas</button>
-  </div>
-  <button id="clear-done" class="btn btn-ghost">Limpar concluídas</button>
-</div>
+      <div class="footer">
+        <div id="count">0 tarefa(s)</div>
+        <div class="chips">
+          <button class="chip active" data-filter="all">Todas</button>
+          <button class="chip" data-filter="open">Abertas</button>
+          <button class="chip" data-filter="done">Concluídas</button>
+        </div>
+        <button id="clear-done" class="btn btn-ghost">Limpar concluídas</button>
+      </div>
+    </div>
+  </main>
 
-  <button id="clear-done">Limpar concluídas</button>
+  <script>
+    // Estado
+    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    let filter = 'all';
+    const save = () => localStorage.setItem('tasks', JSON.stringify(tasks));
 
-<script>
-  // Estado
-  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-  let filter = 'all';
+    // Render
+    function render() {
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
 
-  // Util
-  const save = () => localStorage.setItem('tasks', JSON.stringify(tasks));
+      const filtered = tasks.filter(t => filter === 'all' ? true : filter === 'open' ? !t.done : t.done);
 
-  // Renderização
-  function render() {
-    const list = document.getElementById('task-list');
-    list.innerHTML = '';
+      filtered.forEach(t => {
+        const li = document.createElement('li');
 
-    const filtered = tasks.filter(t =>
-      filter === 'all' ? true : filter === 'open' ? !t.done : t.done
-    );
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = t.done;
+        checkbox.addEventListener('change', () => {
+          t.done = checkbox.checked; save(); render();
+        });
 
-    filtered.forEach(t => {
-      const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.textContent = t.text;
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = t.done;
-      checkbox.addEventListener('change', () => {
-        t.done = checkbox.checked;
-        save();
-        render();
+        const del = document.createElement('button');
+        del.textContent = 'X';
+        del.title = 'Remover';
+        del.addEventListener('click', () => {
+          tasks = tasks.filter(x => x.id !== t.id); save(); render();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(del);
+        list.appendChild(li);
       });
 
-      const span = document.createElement('span');
-      span.textContent = t.text;
+      const openCount = tasks.filter(t => !t.done).length;
+      document.getElementById('count').textContent = ${openCount} tarefa(s);
+    }
 
-      const del = document.createElement('button');
-      del.textContent = 'X';
-      del.title = 'Remover';
-      del.addEventListener('click', () => {
-        tasks = tasks.filter(x => x.id !== t.id);
-        save();
+    // Adicionar
+    function addTask() {
+      const input = document.getElementById('task-input');
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.push({ id: Date.now(), text, done: false });
+      input.value = '';
+      save(); render();
+    }
+
+    // Eventos
+    document.getElementById('add-btn').addEventListener('click', addTask);
+    document.getElementById('task-input').addEventListener('keyup', (e) => { if (e.key === 'Enter') addTask(); });
+    document.querySelectorAll('.chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.filter;
         render();
       });
-
-      li.appendChild(checkbox);
-      li.appendChild(span);
-      li.appendChild(del);
-      list.appendChild(li);
+    });
+    document.getElementById('clear-done').addEventListener('click', () => {
+      tasks = tasks.filter(t => !t.done); save(); render();
     });
 
-    // contador
-    const openCount = tasks.filter(t => !t.done).length;
-    document.getElementById('count').textContent = ${openCount} tarefa(s);
-  }
-
-  // Adicionar
-  function addTask() {
-    const input = document.getElementById('task-input');
-    const text = input.value.trim();
-    if (!text) return;
-    tasks.push({ id: Date.now(), text, done: false });
-    input.value = '';
-    save();
+    // Inicial
     render();
-  }
-
-  // Ligações de eventos
-  document.getElementById('add-btn').addEventListener('click', addTask);
-  document.getElementById('task-input').addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') addTask();
-  });
-
-  document.querySelectorAll('.chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      filter = btn.dataset.filter;
-      render();
-    });
-  });
-
-  document.getElementById('clear-done').addEventListener('click', () => {
-    tasks = tasks.filter(t => !t.done);
-    save();
-    render();
-  });
-
-  // Primeira renderização
-  render();
-</script>
+  </script>
 </body>
 </html>
