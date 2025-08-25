@@ -227,13 +227,21 @@
       save(tasks);
     }
 
-    function addTask(){
-      const text = input.value.trim();
-      if(!text) return;
-      tasks.push({ id: Date.now(), text, done:false });
-      input.value = "";
-      render();
-    }
+function addTask() {
+    const text = input.value.trim();  // pega o valor digitado e remove espaços extras
+    if (!text) return;  // se estiver vazio, sai da função
+
+    // cria um objeto tarefa
+    tasks.push({
+        id: Date.now(),   // id único baseado na data/hora
+        text,             // texto digitado
+        done: false       // começa como "não concluída"
+    });
+
+    input.value = "";   // limpa o campo de texto depois de adicionar
+    save(tasks);        // salva a lista (caso você esteja usando localStorage)
+    render();           // atualiza a tela
+}
 
     function toggle(id){
       const t = tasks.find(x => x.id === id);
