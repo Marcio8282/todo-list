@@ -147,8 +147,8 @@
     <section class="card">
       <h1><span class="dot"></span> Minha To‑Do List</h1>
 
-    <input id="taskInput" type="text" placeholder="Nova tarefa" autocomplete="off" onkeydown="if(event.key==='Enter') addTask()" />
-<button id="addBtn" class="btn-primary" type="button" onclick="addTask()">Adicionar</button>
+   <input id="task-input" type="text" placeholder="Nova tarefa" autocomplete="off" />
+<button id="add-btn" class="btn-primary">Adicionar</button>
       </div>
 
       <ul id="task-list"></ul>
@@ -243,15 +243,15 @@ function setFilter(filter) {
     }
 
 function addTask() {
-    const text = input.value.trim();  // pega o valor digitado e remove espaços extras
-    if (!text) return;  // se estiver vazio, sai da função
+  const input = document.getElementById("task-input");     // <-- pega o input
+  const text  = input.value.trim();                         // <-- texto digitado
+  if (!text) return;                                        // <-- evita vazio
 
-    // cria um objeto tarefa
-    tasks.push({
-        id: Date.now(),   // id único baseado na data/hora
-        text,             // texto digitado
-        done: false       // começa como "não concluída"
-    });
+  tasks.push({ id: Date.now(), text, done: false });        // <-- adiciona
+  input.value = "";                                         // <-- limpa campo
+  save();                                                   // <-- persiste (se você tem save())
+  render();                                                 // <-- redesenha a lista
+}
 
     input.value = "";   // limpa o campo de texto depois de adicionar
     save(tasks);        // salva a lista (caso você esteja usando localStorage)
@@ -287,6 +287,24 @@ function addTask() {
 
     // Primeiro render
     render();
+    // Quando o DOM carregar, conecta os eventos e desenha a tela
+window.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("task-input");
+  const addBtn = document.getElementById("add-btn");
+
+  // Clique no botão "Adicionar"
+  addBtn.addEventListener("click", addTask);
+
+  // Tecla Enter no input também adiciona
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addTask();
+  });
+
+  // Se você tiver uma função que carrega do localStorage, chame-a aqui
+  // load();
+
+  render(); // desenha a UI no início
+});
   </script>
 </body>
 </html>
