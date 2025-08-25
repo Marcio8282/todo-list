@@ -9,30 +9,109 @@
   <h1>Minha To-Do List (teste)</h1>
 
   <div class="row">
-    <input id="task-input" type="text" placeholder="Nova tarefa" />
-    <button id="add-btn">Adicionar</button>
-  </div>
+  <input id="task-input" class="task-input" type="text" placeholder="Nova tarefa" autocomplete="off" />
+<button id="add-btn" class="btn btn-primary">Adicionar</button>
 
-  <ul id="task-list"></ul>
+<ul id="task-list"></ul>
 
-  <div id="task-count">0 tarefa(s)</div>
-
+<div class="footer">
+  <div id="count">0 tarefa(s)</div>
   <div class="chips">
     <button class="chip active" data-filter="all">Todas</button>
     <button class="chip" data-filter="open">Abertas</button>
     <button class="chip" data-filter="done">Concluídas</button>
   </div>
+  <button id="clear-done" class="btn btn-ghost">Limpar concluídas</button>
+</div>
 
   <button id="clear-done">Limpar concluídas</button>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      console.log("BOOT ✅");                       // Deve aparecer no Console
-      const addBtn = document.getElementById("add-btn");
-      addBtn.addEventListener("click", () => {
-        alert("Cliquei no botão Adicionar!");      // Deve aparecer ao clicar
+<script>
+  // Estado
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  let filter = 'all';
+
+  // Util
+  const save = () => localStorage.setItem('tasks', JSON.stringify(tasks));
+
+  // Renderização
+  function render() {
+    const list = document.getElementById('task-list');
+    list.innerHTML = '';
+
+    const filtered = tasks.filter(t =>
+      filter === 'all' ? true : filter === 'open' ? !t.done : t.done
+    );
+
+    filtered.forEach(t => {
+      const li = document.createElement('li');
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = t.done;
+      checkbox.addEventListener('change', () => {
+        t.done = checkbox.checked;
+        save();
+        render();
       });
+
+      const span = document.createElement('span');
+      span.textContent = t.text;
+
+      const del = document.createElement('button');
+      del.textContent = 'X';
+      del.title = 'Remover';
+      del.addEventListener('click', () => {
+        tasks = tasks.filter(x => x.id !== t.id);
+        save();
+        render();
+      });
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(del);
+      list.appendChild(li);
     });
-  </script>
+
+    // contador
+    const openCount = tasks.filter(t => !t.done).length;
+    document.getElementById('count').textContent = ${openCount} tarefa(s);
+  }
+
+  // Adicionar
+  function addTask() {
+    const input = document.getElementById('task-input');
+    const text = input.value.trim();
+    if (!text) return;
+    tasks.push({ id: Date.now(), text, done: false });
+    input.value = '';
+    save();
+    render();
+  }
+
+  // Ligações de eventos
+  document.getElementById('add-btn').addEventListener('click', addTask);
+  document.getElementById('task-input').addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  document.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  document.getElementById('clear-done').addEventListener('click', () => {
+    tasks = tasks.filter(t => !t.done);
+    save();
+    render();
+  });
+
+  // Primeira renderização
+  render();
+</script>
 </body>
 </html>
