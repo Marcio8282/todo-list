@@ -62,110 +62,122 @@
       </div>
     </section>
   </main>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  // ---- Referências aos elementos (IDs precisam bater com o HTML) ----
+  const input     = document.getElementById('task-input');
+  const addBtn    = document.getElementById('add-btn');
+  const listEl    = document.getElementById('task-list');
+  const countEl   = document.getElementById('task-count');
+  const filterEls = document.querySelectorAll('[data-filter]');
+  const clearBtn  = document.getElementById('clear-done');
 
-  <script>
-    // ----- Estado -----
-    let tasks = [];
-    let currentFilter = "all";
+  // ---- Estado + persistência ----
+  let tasks = load();
 
-    // ----- Persistência -----
-    function save(){ localStorage.setItem("todo.tasks", JSON.stringify(tasks)); }
-    function load(){
-      try{
-        const raw = localStorage.getItem("todo.tasks");
-        tasks = raw ? JSON.parse(raw) : [];
-      }catch{ tasks = []; }
-    }
+  function load() {
+    try { return JSON.parse(localStorage.getItem('tasks') || '[]'); }
+    catch { return []; }
+  }
+  function save() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
 
-    // ----- Ações -----
-    function addTask(){
-      const input = document.getElementById("task-input");
-      const text = input.value.trim();
-      if(!text) return;
-      tasks.push({ id: Date.now(), text, done:false });
-      input.value = "";
-      save();
-      render();
-    }
+  // ---- Ações ----
+  function addTask() {
+    const text = input.value.trim();
+    if (!text) return;
+    tasks.push({ id: Date.now(), text, done: false });
+    input.value = '';
+    render();
+  }
 
-    function toggleTask(id){
-      const t = tasks.find(t => t.id === id);
-      if(t){ t.done = !t.done; save(); render(); }
-    }
+  function toggle(id) {
+    const t = tasks.find(x => x.id === id);
+    if (t) { t.done = !t.done; render(); }
+  }
 
-    function removeTask(id){
-      tasks = tasks.filter(t => t.id !== id);
-      save();
-      render();
-    }
+  function removeTask(id) {
+    tasks = tasks.filter(x => x.id !== id);
+    render();
+  }
 
-    function clearDone(){
-      tasks = tasks.filter(t => !t.done);
-      save();
-      render();
-    }
+  function clearDone() {
+    tasks = tasks.filter(x => !x.done);
+    render();
+  }
 
-    // ----- Renderização -----
-    function render(){
-      const listEl = document.getElementById("task-list");
-      listEl.innerHTML = "";
+  // ---- Renderização + filtros ----
+  let currentFilter = 'all'; // all | open | done
 
-      const filtered = tasks.filter(t => {
-        if(currentFilter === "open") return !t.done;
-        if(currentFilter === "done") return t.done;
-        return true;
-      });
-
-      filtered.forEach(task => {
-        const li = document.createElement("li");
-        if(task.done) li.classList.add("completed");
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = task.done;
-        checkbox.addEventListener("change", () => toggleTask(task.id));
-
-        const span = document.createElement("span");
-        span.className = "text";
-        span.textContent = task.text;
-
-        const del = document.createElement("div");
-        del.className = "icon delete";
-        del.title = "Remover";
-        del.textContent = "×";
-        del.addEventListener("click", () => removeTask(task.id));
-
-        li.appendChild(checkbox);
-        li.appendChild(span);
-        li.appendChild(del);
-        listEl.appendChild(li);
-      });
-
-      const openCount = tasks.filter(t => !t.done).length;
-      document.getElementById("count").textContent = ${openCount} tarefa(s);
-    }
-
-    // ----- Inicialização e eventos -----
-    window.addEventListener("DOMContentLoaded", () => {
-      load();
-      render();
-
-      const input = document.getElementById("task-input");
-      const addBtn = document.getElementById("add-btn");
-      addBtn.addEventListener("click", addTask);
-      input.addEventListener("keydown", e => { if(e.key === "Enter") addTask(); });
-
-      document.querySelectorAll(".chip").forEach(chip => {
-        chip.addEventListener("click", () => {
-          currentFilter = chip.dataset.filter;
-          document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-          chip.classList.add("active");
-          render();
-        });
-      });
-
-      document.getElementById("clear-done").addEventListener("click", clearDone);
+  function render() {
+    // aplica filtro atual
+    const filtered = tasks.filter(t => {
+      if (currentFilter === 'open') return !t.done;
+      if (currentFilter === 'done') return  t.done;
+      return true;
     });
-  </script>
+
+    // limpa lista
+    listEl.innerHTML = '';
+
+    // monta itens
+    filtered.forEach(task => {
+      const li = document.createElement('li');
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = task.done;
+      checkbox.addEventListener('change', () => toggle(task.id));
+
+      const span = document.createElement('span');
+      span.textContent = task.text;
+
+      const del = document.createElement('button');
+      del.className = 'icon delete';
+      del.title = 'Remover';
+      del.innerHTML = '×';
+      del.addEventListener('click', () => removeTask(task.id));
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      actions.appendChild(del);
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(actions);
+      listEl.appendChild(li);
+    });
+
+    // contador
+    const openCount = tasks.filter(t => !t.done).length;
+    countEl.textContent = ${openCount} tarefa(s);
+
+    // salva sempre que renderiza
+    save();
+  }
+
+  // ---- Listeners (só são ligados após o DOM existir) ----
+  addBtn.addEventListener('click', addTask);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  filterEls.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter; // all | open | done
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+
+  clearBtn.addEventListener('click', clearDone);
+
+  // primeira renderização
+  render();
+});
+</script>
+
 </body>
 </html>
